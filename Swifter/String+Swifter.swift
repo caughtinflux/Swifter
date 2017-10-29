@@ -27,12 +27,12 @@ import Foundation
 
 extension String {
 
-    internal func indexOf(sub: String) -> Int? {
+    internal func indexOf(_ sub: String) -> Int? {
         var pos: Int?
 
-        if let range = self.rangeOfString(sub) {
+        if let range = self.range(of: sub) {
             if !range.isEmpty {
-                pos = self.startIndex.distanceTo(range.startIndex)
+                pos = self.characters.distance(from: self.startIndex, to: range.lowerBound)
             }
         }
 
@@ -41,20 +41,20 @@ extension String {
 
     internal subscript (r: Range<Int>) -> String {
         get {
-            let startIndex = self.startIndex.advancedBy(r.startIndex)
-            let endIndex = startIndex.advancedBy(r.endIndex - r.startIndex)
+            let startIndex = self.characters.index(self.startIndex, offsetBy: r.lowerBound)
+            let endIndex = <#T##String.CharacterView corresponding to `startIndex`##String.CharacterView#>.index(startIndex, offsetBy: r.upperBound - r.lowerBound)
 
-            return self[Range(start: startIndex, end: endIndex)]
+            return self[(startIndex ..< endIndex)]
         }
     }
     
-    func urlEncodedStringWithEncoding(encoding: NSStringEncoding) -> String {
-        let charactersToBeEscaped = ":/?&=;+!@#$()',*" as CFStringRef
-        let charactersToLeaveUnescaped = "[]." as CFStringRef
+    func urlEncodedStringWithEncoding(_ encoding: String.Encoding) -> String {
+        let charactersToBeEscaped = ":/?&=;+!@#$()',*" as CFString
+        let charactersToLeaveUnescaped = "[]." as CFString
 
         let str = self as NSString
 
-        let result = CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, str as CFString, charactersToLeaveUnescaped, charactersToBeEscaped, CFStringConvertNSStringEncodingToEncoding(encoding)) as NSString
+        let result = CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, str as CFString, charactersToLeaveUnescaped, charactersToBeEscaped, CFStringConvertNSStringEncodingToEncoding(encoding.rawValue)) as NSString
 
         return result as String
     }
@@ -62,19 +62,19 @@ extension String {
     func parametersFromQueryString() -> Dictionary<String, String> {
         var parameters = Dictionary<String, String>()
 
-        let scanner = NSScanner(string: self)
+        let scanner = Scanner(string: self)
 
         var key: NSString?
         var value: NSString?
 
-        while !scanner.atEnd {
+        while !scanner.isAtEnd {
             key = nil
-            scanner.scanUpToString("=", intoString: &key)
-            scanner.scanString("=", intoString: nil)
+            scanner.scanUpTo("=", into: &key)
+            scanner.scanString("=", into: nil)
 
             value = nil
-            scanner.scanUpToString("&", intoString: &value)
-            scanner.scanString("&", intoString: nil)
+            scanner.scanUpTo("&", into: &value)
+            scanner.scanString("&", into: nil)
 
             if key != nil && value != nil {
                 parameters.updateValue(value! as String, forKey: key! as String)
@@ -84,19 +84,19 @@ extension String {
         return parameters
     }
 
-    func SHA1DigestWithKey(key: String) -> NSData {
-        let str = self.cStringUsingEncoding(NSUTF8StringEncoding)
-        let strLen = self.lengthOfBytesUsingEncoding(NSUTF8StringEncoding)
+    func SHA1DigestWithKey(_ key: String) -> Data {
+        let str = self.cString(using: String.Encoding.utf8)
+        let strLen = self.lengthOfBytes(using: String.Encoding.utf8)
         
         let digestLen = Int(CC_SHA1_DIGEST_LENGTH)
-        let result = UnsafeMutablePointer<Void>.alloc(digestLen)
+        let result = UnsafeMutableRawPointer.allocate(bytes: digestLen, alignedTo: <#Int#>)
         
-        let keyStr = key.cStringUsingEncoding(NSUTF8StringEncoding)!
-        let keyLen = key.lengthOfBytesUsingEncoding(NSUTF8StringEncoding)
+        let keyStr = key.cString(using: String.Encoding.utf8)!
+        let keyLen = key.lengthOfBytes(using: String.Encoding.utf8)
 
         CCHmac(CCHmacAlgorithm(kCCHmacAlgSHA1), keyStr, keyLen, str!, strLen, result)
 
-        return NSData(bytes: result, length: digestLen)
+        return Data(bytes: UnsafePointer<UInt8>(result), count: digestLen)
     }
     
 }

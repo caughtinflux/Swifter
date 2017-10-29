@@ -26,7 +26,7 @@
 import Foundation
 import Accounts
 
-public class SwifterCredential {
+open class SwifterCredential {
 
     public struct OAuthAccessToken {
 
@@ -54,8 +54,8 @@ public class SwifterCredential {
         
     }
 
-    public internal(set) var accessToken: OAuthAccessToken?
-    public internal(set) var account: ACAccount?
+    open internal(set) var accessToken: OAuthAccessToken?
+    open internal(set) var account: ACAccount?
 
     public init(accessToken: OAuthAccessToken) {
         self.accessToken = accessToken

@@ -27,7 +27,7 @@ import Foundation
 
 extension Dictionary {
 
-    func filter(predicate: Element -> Bool) -> Dictionary {
+    func filter(_ predicate: (Element) -> Bool) -> Dictionary {
         var filteredDictionary = Dictionary()
 
         for (key, value) in self {
@@ -49,10 +49,10 @@ extension Dictionary {
             parts.append(query)
         }
 
-        return parts.joinWithSeparator("&")
+        return parts.joined(separator: "&")
     }
 
-    func urlEncodedQueryStringWithEncoding(encoding: NSStringEncoding) -> String {
+    func urlEncodedQueryStringWithEncoding(_ encoding: String.Encoding) -> String {
         var parts = [String]()
 
         for (key, value) in self {
@@ -62,12 +62,12 @@ extension Dictionary {
             parts.append(query)
         }
 
-        return parts.joinWithSeparator("&")
+        return parts.joined(separator: "&")
     }
     
 }
 
-infix operator +| {}
+infix operator +|
 func +| <K,V>(left: Dictionary<K,V>, right: Dictionary<K,V>) -> Dictionary<K,V> {
     var map = Dictionary<K,V>()
     for (k, v) in left {

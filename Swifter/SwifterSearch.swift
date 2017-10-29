@@ -28,7 +28,7 @@ import Foundation
 public extension Swifter {
 
     //	GET		search/tweets
-    public func getSearchTweetsWithQuery(q: String, geocode: String? = nil, lang: String? = nil, locale: String? = nil, resultType: String? = nil, count: Int? = nil, until: String? = nil, sinceID: String? = nil, maxID: String? = nil, includeEntities: Bool? = nil, callback: String? = nil, success: ((statuses: [JSONValue]?, searchMetadata: Dictionary<String, JSONValue>?) -> Void)? = nil, failure: FailureHandler) {
+    public func getSearchTweetsWithQuery(_ q: String, geocode: String? = nil, lang: String? = nil, locale: String? = nil, resultType: String? = nil, count: Int? = nil, until: String? = nil, sinceID: String? = nil, maxID: String? = nil, includeEntities: Bool? = nil, callback: String? = nil, success: ((_ statuses: [JSONValue]?, _ searchMetadata: Dictionary<String, JSONValue>?) -> Void)? = nil, failure: FailureHandler) {
         let path = "search/tweets.json"
 
         var parameters = Dictionary<String, Any>()

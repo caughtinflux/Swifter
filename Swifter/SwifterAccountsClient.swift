@@ -35,15 +35,15 @@ internal class SwifterAccountsClient: SwifterClientProtocol {
         self.credential = SwifterCredential(account: account)
     }
 
-    func get(path: String, baseURL: NSURL, parameters: Dictionary<String, Any>, uploadProgress: SwifterHTTPRequest.UploadProgressHandler?, downloadProgress: SwifterHTTPRequest.DownloadProgressHandler?, success: SwifterHTTPRequest.SuccessHandler?, failure: SwifterHTTPRequest.FailureHandler?) -> SwifterHTTPRequest {
-        let url = NSURL(string: path, relativeToURL: baseURL)
+    func get(_ path: String, baseURL: URL, parameters: Dictionary<String, Any>, uploadProgress: SwifterHTTPRequest.UploadProgressHandler?, downloadProgress: SwifterHTTPRequest.DownloadProgressHandler?, success: SwifterHTTPRequest.SuccessHandler?, failure: SwifterHTTPRequest.FailureHandler?) -> SwifterHTTPRequest {
+        let url = URL(string: path, relativeTo: baseURL)
 
         let stringifiedParameters = SwifterAccountsClient.convertDictionaryValuesToStrings(parameters)
 
-        let socialRequest = SLRequest(forServiceType: SLServiceTypeTwitter, requestMethod: SLRequestMethod.GET, URL: url, parameters: stringifiedParameters)
-        socialRequest.account = self.credential!.account!
+        let socialRequest = SLRequest(forServiceType: SLServiceTypeTwitter, requestMethod: SLRequestMethod.GET, url: url, parameters: stringifiedParameters)
+        socialRequest?.account = self.credential!.account!
 
-        let request = SwifterHTTPRequest(request: socialRequest.preparedURLRequest())
+        let request = SwifterHTTPRequest(request: socialRequest!.preparedURLRequest() as! NSURLRequest)
         request.parameters = parameters
         request.downloadProgressHandler = downloadProgress
         request.successHandler = success
@@ -53,21 +53,21 @@ internal class SwifterAccountsClient: SwifterClientProtocol {
         return request
     }
 
-    func post(path: String, baseURL: NSURL, parameters: Dictionary<String, Any>, uploadProgress: SwifterHTTPRequest.UploadProgressHandler?, downloadProgress: SwifterHTTPRequest.DownloadProgressHandler?, success: SwifterHTTPRequest.SuccessHandler?, failure: SwifterHTTPRequest.FailureHandler?) -> SwifterHTTPRequest {
-        let url = NSURL(string: path, relativeToURL: baseURL)
+    func post(_ path: String, baseURL: URL, parameters: Dictionary<String, Any>, uploadProgress: SwifterHTTPRequest.UploadProgressHandler?, downloadProgress: SwifterHTTPRequest.DownloadProgressHandler?, success: SwifterHTTPRequest.SuccessHandler?, failure: SwifterHTTPRequest.FailureHandler?) -> SwifterHTTPRequest {
+        let url = URL(string: path, relativeTo: baseURL)
 
         var params = parameters
         
-        var postData: NSData?
+        var postData: Data?
         var postDataKey: String?
 
         if let key: Any = params[Swifter.DataParameters.dataKey] {
             if let keyString = key as? String {
                 postDataKey = keyString
-                postData = params[postDataKey!] as? NSData
+                postData = params[postDataKey!] as? Data
 
-                params.removeValueForKey(Swifter.DataParameters.dataKey)
-                params.removeValueForKey(postDataKey!)
+                params.removeValue(forKey: Swifter.DataParameters.dataKey)
+                params.removeValue(forKey: postDataKey!)
             }
         }
 
@@ -75,22 +75,22 @@ internal class SwifterAccountsClient: SwifterClientProtocol {
         if let fileName: Any = params[Swifter.DataParameters.fileNameKey] {
             if let fileNameString = fileName as? String {
                 postDataFileName = fileNameString
-                params.removeValueForKey(fileNameString)
+                params.removeValue(forKey: fileNameString)
             }
         }
 
         let stringifiedParameters = SwifterAccountsClient.convertDictionaryValuesToStrings(params)
 
-        let socialRequest = SLRequest(forServiceType: SLServiceTypeTwitter, requestMethod: SLRequestMethod.POST, URL: url, parameters: stringifiedParameters)
-        socialRequest.account = self.credential!.account!
+        let socialRequest = SLRequest(forServiceType: SLServiceTypeTwitter, requestMethod: SLRequestMethod.POST, url: url, parameters: stringifiedParameters)
+        socialRequest?.account = self.credential!.account!
 
         if postData != nil {
             let fileName = postDataFileName ?? "media.jpg"
 
-            socialRequest.addMultipartData(postData!, withName: postDataKey!, type: "application/octet-stream", filename: fileName)
+            socialRequest?.addMultipartData(postData!, withName: postDataKey!, type: "application/octet-stream", filename: fileName)
         }
 
-        let request = SwifterHTTPRequest(request: socialRequest.preparedURLRequest())
+        let request = SwifterHTTPRequest(request: socialRequest!.preparedURLRequest() as! NSURLRequest)
         request.parameters = parameters
         request.downloadProgressHandler = downloadProgress
         request.successHandler = success
@@ -100,7 +100,7 @@ internal class SwifterAccountsClient: SwifterClientProtocol {
         return request
     }
 
-    class func convertDictionaryValuesToStrings(dictionary: Dictionary<String, Any>) -> Dictionary<String, String> {
+    class func convertDictionaryValuesToStrings(_ dictionary: Dictionary<String, Any>) -> Dictionary<String, String> {
         var result = Dictionary<String, String>()
 
         for (key, value): (String, Any) in dictionary {

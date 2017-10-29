@@ -26,12 +26,12 @@
 import Foundation
 import Accounts
 
-public class Swifter {
+open class Swifter {
 
     // MARK: - Types
 
-    public typealias JSONSuccessHandler = (json: JSON, response: NSHTTPURLResponse) -> Void
-    public typealias FailureHandler = (error: NSError) -> Void
+    public typealias JSONSuccessHandler = (_ json: JSON, _ response: HTTPURLResponse) -> Void
+    public typealias FailureHandler = (_ error: NSError) -> Void
 
     internal struct CallbackNotification {
         static let notificationName = "SwifterCallbackNotificationName"
@@ -50,13 +50,13 @@ public class Swifter {
 
     // MARK: - Properties
 
-    internal(set) var apiURL: NSURL
-    internal(set) var uploadURL: NSURL
-    internal(set) var streamURL: NSURL
-    internal(set) var userStreamURL: NSURL
-    internal(set) var siteStreamURL: NSURL
+    internal(set) var apiURL: URL
+    internal(set) var uploadURL: URL
+    internal(set) var streamURL: URL
+    internal(set) var userStreamURL: URL
+    internal(set) var siteStreamURL: URL
 
-    public var client: SwifterClientProtocol
+    open var client: SwifterClientProtocol
 
     // MARK: - Initializers
 
@@ -72,40 +72,40 @@ public class Swifter {
             self.client = SwifterOAuthClient(consumerKey: consumerKey, consumerSecret: consumerSecret)
         }
 
-        self.apiURL = NSURL(string: "https://api.twitter.com/1.1/")!
-        self.uploadURL = NSURL(string: "https://upload.twitter.com/1.1/")!
-        self.streamURL = NSURL(string: "https://stream.twitter.com/1.1/")!
-        self.userStreamURL = NSURL(string: "https://userstream.twitter.com/1.1/")!
-        self.siteStreamURL = NSURL(string: "https://sitestream.twitter.com/1.1/")!
+        self.apiURL = URL(string: "https://api.twitter.com/1.1/")!
+        self.uploadURL = URL(string: "https://upload.twitter.com/1.1/")!
+        self.streamURL = URL(string: "https://stream.twitter.com/1.1/")!
+        self.userStreamURL = URL(string: "https://userstream.twitter.com/1.1/")!
+        self.siteStreamURL = URL(string: "https://sitestream.twitter.com/1.1/")!
     }
 
     public init(consumerKey: String, consumerSecret: String, oauthToken: String, oauthTokenSecret: String) {
         self.client = SwifterOAuthClient(consumerKey: consumerKey, consumerSecret: consumerSecret , accessToken: oauthToken, accessTokenSecret: oauthTokenSecret)
 
-        self.apiURL = NSURL(string: "https://api.twitter.com/1.1/")!
-        self.uploadURL = NSURL(string: "https://upload.twitter.com/1.1/")!
-        self.streamURL = NSURL(string: "https://stream.twitter.com/1.1/")!
-        self.userStreamURL = NSURL(string: "https://userstream.twitter.com/1.1/")!
-        self.siteStreamURL = NSURL(string: "https://sitestream.twitter.com/1.1/")!
+        self.apiURL = URL(string: "https://api.twitter.com/1.1/")!
+        self.uploadURL = URL(string: "https://upload.twitter.com/1.1/")!
+        self.streamURL = URL(string: "https://stream.twitter.com/1.1/")!
+        self.userStreamURL = URL(string: "https://userstream.twitter.com/1.1/")!
+        self.siteStreamURL = URL(string: "https://sitestream.twitter.com/1.1/")!
     }
 
     public init(account: ACAccount) {
         self.client = SwifterAccountsClient(account: account)
 
-        self.apiURL = NSURL(string: "https://api.twitter.com/1.1/")!
-        self.uploadURL = NSURL(string: "https://upload.twitter.com/1.1/")!
-        self.streamURL = NSURL(string: "https://stream.twitter.com/1.1/")!
-        self.userStreamURL = NSURL(string: "https://userstream.twitter.com/1.1/")!
-        self.siteStreamURL = NSURL(string: "https://sitestream.twitter.com/1.1/")!
+        self.apiURL = URL(string: "https://api.twitter.com/1.1/")!
+        self.uploadURL = URL(string: "https://upload.twitter.com/1.1/")!
+        self.streamURL = URL(string: "https://stream.twitter.com/1.1/")!
+        self.userStreamURL = URL(string: "https://userstream.twitter.com/1.1/")!
+        self.siteStreamURL = URL(string: "https://sitestream.twitter.com/1.1/")!
     }
 
     deinit {
-        NSNotificationCenter.defaultCenter().removeObserver(self)
+        NotificationCenter.default.removeObserver(self)
     }
 
     // MARK: - JSON Requests
 
-    internal func jsonRequestWithPath(path: String, baseURL: NSURL, method: String, parameters: Dictionary<String, Any>, uploadProgress: SwifterHTTPRequest.UploadProgressHandler? = nil, downloadProgress: JSONSuccessHandler? = nil, success: JSONSuccessHandler? = nil, failure: SwifterHTTPRequest.FailureHandler? = nil) -> SwifterHTTPRequest {
+    internal func jsonRequestWithPath(_ path: String, baseURL: URL, method: String, parameters: Dictionary<String, Any>, uploadProgress: SwifterHTTPRequest.UploadProgressHandler? = nil, downloadProgress: JSONSuccessHandler? = nil, success: JSONSuccessHandler? = nil, failure: SwifterHTTPRequest.FailureHandler? = nil) -> SwifterHTTPRequest {
         let jsonDownloadProgressHandler: SwifterHTTPRequest.DownloadProgressHandler = {
             data, _, _, response in
 
@@ -118,15 +118,15 @@ public class Swifter {
                 downloadProgress?(json: jsonResult, response: response)
             } catch _ as NSError {
                 
-                let jsonString = NSString(data: data, encoding: NSUTF8StringEncoding)
-                let jsonChunks = jsonString!.componentsSeparatedByString("\r\n") as [String]
+                let jsonString = NSString(data: data, encoding: String.Encoding.utf8)
+                let jsonChunks = jsonString!.components(separatedBy: "\r\n") as [String]
 
                 for chunk in jsonChunks {
                     if chunk.utf16.count == 0 {
                         continue
                     }
 
-                    if let chunkData = chunk.dataUsingEncoding(NSUTF8StringEncoding) {
+                    if let chunkData = chunk.data(using: String.Encoding.utf8) {
                         do {
                             let jsonResult = try JSON.parseJSONData(chunkData)
                             downloadProgress?(json: jsonResult, response: response)
@@ -145,18 +145,18 @@ public class Swifter {
         let jsonSuccessHandler: SwifterHTTPRequest.SuccessHandler = {
             data, response in
 
-            dispatch_async(dispatch_get_global_queue(QOS_CLASS_UTILITY, 0)) {
+            DispatchQueue.global(qos: DispatchQoS.QoSClass.utility).async {
                 var error: NSError?
                 do {
                     let jsonResult = try JSON.parseJSONData(data)
-                    dispatch_async(dispatch_get_main_queue()) {
+                    DispatchQueue.main.async {
                         if let success = success {
                             success(json: jsonResult, response: response)
                         }
                     }
                 } catch let error1 as NSError {
                     error = error1
-                    dispatch_async(dispatch_get_main_queue()) {
+                    DispatchQueue.main.async {
                         if let failure = failure {
                             failure(error: error!)
                         }
@@ -175,11 +175,11 @@ public class Swifter {
         }
     }
 
-    internal func getJSONWithPath(path: String, baseURL: NSURL, parameters: Dictionary<String, Any>, uploadProgress: SwifterHTTPRequest.UploadProgressHandler?, downloadProgress: JSONSuccessHandler?, success: JSONSuccessHandler?, failure: SwifterHTTPRequest.FailureHandler?) -> SwifterHTTPRequest {
+    internal func getJSONWithPath(_ path: String, baseURL: URL, parameters: Dictionary<String, Any>, uploadProgress: SwifterHTTPRequest.UploadProgressHandler?, downloadProgress: JSONSuccessHandler?, success: JSONSuccessHandler?, failure: SwifterHTTPRequest.FailureHandler?) -> SwifterHTTPRequest {
         return self.jsonRequestWithPath(path, baseURL: baseURL, method: "GET", parameters: parameters, uploadProgress: uploadProgress, downloadProgress: downloadProgress, success: success, failure: failure)
     }
 
-    internal func postJSONWithPath(path: String, baseURL: NSURL, parameters: Dictionary<String, Any>, uploadProgress: SwifterHTTPRequest.UploadProgressHandler?, downloadProgress: JSONSuccessHandler?, success: JSONSuccessHandler?, failure: SwifterHTTPRequest.FailureHandler?) -> SwifterHTTPRequest {
+    internal func postJSONWithPath(_ path: String, baseURL: URL, parameters: Dictionary<String, Any>, uploadProgress: SwifterHTTPRequest.UploadProgressHandler?, downloadProgress: JSONSuccessHandler?, success: JSONSuccessHandler?, failure: SwifterHTTPRequest.FailureHandler?) -> SwifterHTTPRequest {
         return self.jsonRequestWithPath(path, baseURL: baseURL, method: "POST", parameters: parameters, uploadProgress: uploadProgress, downloadProgress: downloadProgress, success: success, failure: failure)
     }
     
